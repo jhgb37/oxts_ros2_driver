@@ -24,10 +24,18 @@ find_package(tf2_kdl REQUIRED)
 find_package(oxts_msgs REQUIRED)
 
 
+# NCom decoder as a library, so other packages can decode the raw NCom packets
+# published on <topic_prefix>/ncom
+add_library(ncom_rx SHARED src/lib/NComRxC.c)
+target_include_directories(ncom_rx PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_link_libraries(ncom_rx m)
+
 add_executable(oxts_driver 
                src/driver/oxts_node.cpp 
-               src/lib/NComRxC.c 
                src/driver/driver.cpp)
+target_link_libraries(oxts_driver ncom_rx)
 
 ament_target_dependencies(oxts_driver 
                           rclcpp
@@ -46,6 +54,15 @@ target_include_directories(oxts_driver PUBLIC
 
 install(TARGETS oxts_driver
         DESTINATION lib/${PROJECT_NAME})
+
+install(TARGETS ncom_rx
+        EXPORT export_${PROJECT_NAME}
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin)
+install(FILES include/oxts_driver/NComRxC.h
+        DESTINATION include/${PROJECT_NAME})
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 install(DIRECTORY config 
         DESTINATION share/${PROJECT_NAME})
