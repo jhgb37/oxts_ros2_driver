@@ -107,7 +107,7 @@ public:
         bytes_received = socket.receive_from(
             boost::asio::buffer(recv_buffer, size_of_buffer), sender_endpoint,
             0, error_code);
-      } while (sender_endpoint != required_sender_endpoint);
+      } while (sender_endpoint.address() != required_sender_endpoint.address());
       socket.close(error_code);
 #ifdef EXTRA_DETAIL
       std::cout << "Bytes received - " << bytes_received << std::endl;
